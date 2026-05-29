@@ -1,6 +1,10 @@
 import numpy as np
+from typing import Literal
 
 BIAS = 1 # Bias neuron
+FLOAT_TYPE = np.float32
+
+rng = np.random.default_rng(seed=42)
 
 def relu(x):
     return np.maximum(0, x)
@@ -9,16 +13,18 @@ hidden_act = lambda x: relu(x)
 outp_act = lambda x: relu(x)
 
 class HiddenNeuron:
-    def __init__(self, weights):
-        self.weights = weights
-    
+    def __init__(self):
+        self.weights = 0
+        
     def foward(self, x):
         sum = np.dot(x, self.weights)
         return hidden_act(sum)
     
 class BiasNeuron:
+    def update_weights(self, x): pass
+    
     def foward(self, x=None):
-        return np.float32(1)
+        return FLOAT_TYPE(1)
     
 class InputNeuron:
     def foward(self, x):
@@ -32,7 +38,7 @@ class HiddenLayer:
         self.neurons: list[HiddenNeuron] = []
         
         for i in range(self.qtyNeurons - BIAS):
-            self.neurons.append(HiddenNeuron(np.ones(qtyLastLayerNeurons)))
+            self.neurons.append(HiddenNeuron())
         self.neurons.append(BiasNeuron())
     
     def foward(self, x):
@@ -70,7 +76,7 @@ class OutputLayer:
         self.neurons: list[HiddenNeuron] = []
         
         for i in range(self.qtyNeurons):
-            self.neurons.append(HiddenNeuron(np.ones(qtyLastLayerNeurons)))
+            self.neurons.append(HiddenNeuron())
     
     def foward(self, x):
         res = np.zeros(self.qtyNeurons)
@@ -86,9 +92,10 @@ class ArtificialNeuralNetwork:
         self.qtyHiddenNeuronsPerLayer = qtyHiddenNeuronsPerLayer + BIAS
         self.qtyNeuronsOutput = qtyNeuronsOutput
         
-        self._create_ann(random=False)
+        self._create_ann()
+        self.update_weights()
     
-    def _create_ann(self, random=True):
+    def _create_ann(self):
         self.inputLayer = InputLayer(self.qtyInputNeuron)
         self.hiddenLayers = [HiddenLayer(self.qtyHiddenNeuronsPerLayer, self.qtyInputNeuron)]
         
@@ -97,6 +104,47 @@ class ArtificialNeuralNetwork:
             self.hiddenLayers.append(HiddenLayer(self.qtyHiddenNeuronsPerLayer, qtyLastLayerNeurons))
     
         self.outputLayer = OutputLayer(self.qtyNeuronsOutput, self.hiddenLayers[-1].qtyNeurons)
+        
+    def update_weights(self, x = None, method: Literal["random", "ones"] = "ones"):
+        
+        if x == None:
+            update_method = {"random":lambda size: rng.uniform(low=-1.5, high=1.5, size=size).dtype(FLOAT_TYPE),
+                           "ones":lambda size: np.ones(size, dtype=FLOAT_TYPE)}
+        
+        else:
+            pass # X will be: = [[hiddenW1, ..., hiddenWn], [outpW]]
+        
+        for i in range(len(self.hiddenLayers)):
+            for j in range(len(self.hiddenLayers[i].neurons)):
+                size = self.hiddenLayers[i].qtyLastLayerNeurons
+                self.hiddenLayers[i].neurons[j].weights = update_method[method](size)
+                
+        for i in range(len(self.outputLayer.neurons)):
+            size = self.outputLayer.qtyLastLayerNeurons
+            self.outputLayer.neurons[i].weights = update_method[method](size)
+            
+    def network_to_arr(self):
+        net_arr = []
+        
+        for layer in self.hiddenLayers:
+            for neuron in layer.neurons:
+                net_arr.append(neuron.weights)
+            
+        
+        for neuron in self.outputLayer.neurons:
+            net_arr.append(neuron.weights)
+            
+        return net_arr
+    
+    def arr_to_network(self, net_arr: list):
+        for i in range(self.qtyHiddenLayers):
+            for j in range(self.qtyHiddenNeuronsPerLayer):
+                a = self.hiddenLayers[i].neurons[j].weights = net_arr.pop(0)
+                
+        for i in range(self.qtyNeuronsOutput):
+            self.outputLayer.neurons[i].weights = net_arr.pop(0)
+        
+            
         
     def foward(self, x):
         res_prev = self.inputLayer.foward(x)
