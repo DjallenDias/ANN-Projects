@@ -9,9 +9,7 @@ hidden_act = lambda x: relu(x)
 outp_act = lambda x: relu(x)
 
 class HiddenNeuron:
-    def __init__(self, weights, qtyIncConnections):
-        self.qtyIncConnections = qtyIncConnections
-        
+    def __init__(self, weights):
         self.weights = weights
     
     def foward(self, x):
@@ -19,7 +17,7 @@ class HiddenNeuron:
         return hidden_act(sum)
     
 class BiasNeuron:
-    def foward(self, x):
+    def foward(self, x=None):
         return np.float32(1)
     
 class InputNeuron:
@@ -27,8 +25,22 @@ class InputNeuron:
         return x
 
 class HiddenLayer:
-    def __init__(self, qtyNeurons):
-        pass
+    def __init__(self, qtyNeurons, qtyLastLayerNeurons):
+        self.qtyNeurons = qtyNeurons
+        self.qtyLastLayerNeurons = qtyLastLayerNeurons
+        
+        self.neurons: list[HiddenNeuron] = []
+        
+        for i in range(self.qtyNeurons - BIAS):
+            self.neurons.append(HiddenNeuron(np.ones(qtyLastLayerNeurons)))
+        self.neurons.append(BiasNeuron())
+    
+    def foward(self, x):
+        res = np.zeros(self.qtyNeurons)
+        for i in range(self.qtyNeurons):
+            res[i] = self.neurons[i].foward(x)
+        
+        return res
     
 class InputLayer:
     def __init__(self, qtdNeurons):
@@ -43,7 +55,26 @@ class InputLayer:
         
     def foward(self, x):
         res = np.zeros(self.qtdNeurons)
-        for i in range(self.qtdNeurons):
+        for i in range(self.qtdNeurons - BIAS):
+            res[i] = self.neurons[i].foward(x[i])
+            
+        res[-1] = self.neurons[-1].foward()
+        
+        return res
+
+class OutputLayer:
+    def __init__(self, qtyNeurons, qtyLastLayerNeurons):
+        self.qtyNeurons = qtyNeurons
+        self.qtyLastLayerNeurons = qtyLastLayerNeurons
+        
+        self.neurons: list[HiddenNeuron] = []
+        
+        for i in range(self.qtyNeurons):
+            self.neurons.append(HiddenNeuron(np.ones(qtyLastLayerNeurons)))
+    
+    def foward(self, x):
+        res = np.zeros(self.qtyNeurons)
+        for i in range(self.qtyNeurons):
             res[i] = self.neurons[i].foward(x)
         
         return res
@@ -59,6 +90,20 @@ class ArtificialNeuralNetwork:
     
     def _create_ann(self, random=True):
         self.inputLayer = InputLayer(self.qtyInputNeuron)
+        self.hiddenLayers = [HiddenLayer(self.qtyHiddenNeuronsPerLayer, self.qtyInputNeuron)]
+        
+        for i in range(1, self.qtyHiddenLayers):
+            qtyLastLayerNeurons = self.hiddenLayers[i-1].qtyNeurons
+            self.hiddenLayers.append(HiddenLayer(self.qtyHiddenNeuronsPerLayer, qtyLastLayerNeurons))
     
+        self.outputLayer = OutputLayer(self.qtyNeuronsOutput, self.hiddenLayers[-1].qtyNeurons)
+        
     def foward(self, x):
-        return self.inputLayer.foward(x)
+        res_prev = self.inputLayer.foward(x)
+        
+        for i in range(self.qtyHiddenLayers):
+            res_prev = self.hiddenLayers[i].foward(res_prev)
+        
+        res = self.outputLayer.foward(res_prev)
+        
+        return res
