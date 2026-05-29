@@ -93,7 +93,7 @@ class ArtificialNeuralNetwork:
         self.qtyNeuronsOutput = qtyNeuronsOutput
         
         self._create_ann()
-        self.update_weights()
+        self._set_weights("random")
     
     def _create_ann(self):
         self.inputLayer = InputLayer(self.qtyInputNeuron)
@@ -105,14 +105,9 @@ class ArtificialNeuralNetwork:
     
         self.outputLayer = OutputLayer(self.qtyNeuronsOutput, self.hiddenLayers[-1].qtyNeurons)
         
-    def update_weights(self, x = None, method: Literal["random", "ones"] = "ones"):
-        
-        if x == None:
-            update_method = {"random":lambda size: rng.uniform(low=-1.5, high=1.5, size=size).dtype(FLOAT_TYPE),
-                           "ones":lambda size: np.ones(size, dtype=FLOAT_TYPE)}
-        
-        else:
-            pass # X will be: = [[hiddenW1, ..., hiddenWn], [outpW]]
+    def _set_weights(self, method: Literal["random", "ones"] = "ones"):
+        update_method = {"random":lambda size: rng.uniform(low=-1.5, high=1.5, size=size).astype(FLOAT_TYPE),
+                         "ones":lambda size: np.ones(size, dtype=FLOAT_TYPE)}
         
         for i in range(len(self.hiddenLayers)):
             for j in range(len(self.hiddenLayers[i].neurons)):
@@ -143,8 +138,6 @@ class ArtificialNeuralNetwork:
                 
         for i in range(self.qtyNeuronsOutput):
             self.outputLayer.neurons[i].weights = net_arr.pop(0)
-        
-            
         
     def foward(self, x):
         res_prev = self.inputLayer.foward(x)
