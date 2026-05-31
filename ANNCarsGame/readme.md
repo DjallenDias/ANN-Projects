@@ -1,9 +1,12 @@
 ## Acknowledgments & Licenses
 
-The visual assets (sprites) used in this project were created by **Justinas0192** and are licensed under the [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org).
+This project incorporates high-quality 2D asset packs created by third-party designers, released under public domain terms.
 
-* **Original Creator:** Justinas0192
-* **Source / Link:** [Original Asset Page](https://justinas0192.itch.io/formula-car-pixel-art)
-* **Modifications:** Original sprites were resized and rotated to fit the project's requirements.
+### Game Assets (Vehicles & Tracks)
+* **Asset Pack:** [Racing Pack](https://kenney.nl/assets/racing-pack)
 
-For full licensing details, please check the [CREDITS.md](./assets/sprites/CREDITS.md) file in the assets folder.
+* **Original Creator:** [Kenney](https://kenney.nl/)
+* **License:** [Creative Commons CC0 1.0 Universal (Public Domain)](https://creativecommons.org)
+* **Description:** Includes 2D top-down racing vehicles, track tiles, and environment elements used for the gameplay map and sprite renders.
+
+For a detailed breakdown of asset details, usage rights, and the dedication text, please refer to the [CREDITS.md](assets/CREDITS.md) file.
